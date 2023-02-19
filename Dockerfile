@@ -1,20 +1,21 @@
 # Use the latest stable Rust image as the base
-FROM rust:latest
+FROM golang:latest
 
+# Install dependencies
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y curl tar wget clang pkg-config libssl-dev jq build-essential git make ncdu
 # Set the working directory to /app
 WORKDIR /app
 
 # Clone the Andromeda Core repository
-RUN git clone https://github.com/andromedaprotocol/andromeda-core.git
+RUN git clone https://github.com/andromedaprotocol/andromedad.git && cd andromedad && git checkout galileo-3-v1.1.0-beta1 && make install
 
-# Change the working directory to /app/andromeda-core
-WORKDIR /app/andromeda-core
 
 # Build the project
-RUN cargo build --release
 
-# Expose port 30333 for the node to listen on
-EXPOSE 30333
-
+EXPOSE 26656 26657
+COPY script.sh script.sh
+RUN chmod +x script.sh
 # Start the node
-CMD ["./target/release/andromeda"]
+CMD ["./script.sh"]
